@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MARCO MALIK MD — WhatsApp Pairing</title>
+  <style>
+    :root { color-scheme: dark; --bg:#08111f; --panel:#101e31; --line:#263b58; --text:#edf5ff; --muted:#a8bad1; --green:#35d399; --blue:#72a7ff; --danger:#ff7b8a; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family: system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 10% 0%,#173760 0,transparent 42%),var(--bg); color:var(--text); }
+    .wrap { width:min(980px,calc(100% - 32px)); margin:0 auto; padding:30px 0 50px; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:22px; }
+    .brand { display:flex; align-items:center; gap:13px; }
+    .logo { width:48px; height:48px; border-radius:15px; display:grid; place-items:center; background:linear-gradient(135deg,#2dd4bf,#3478ff); font-size:25px; }
+    h1,h2,p { margin:0; } h1 { font-size:clamp(22px,4vw,34px); } h2 { font-size:20px; margin-bottom:8px; }
+    .muted { color:var(--muted); line-height:1.7; }
+    .badge { padding:7px 12px; border:1px solid var(--line); border-radius:99px; color:var(--muted); font-size:13px; white-space:nowrap; }
+    .grid { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; } .card { background:rgba(16,30,49,.88); border:1px solid var(--line); border-radius:22px; padding:24px; box-shadow:0 16px 50px rgba(0,0,0,.2); }
+    .login { max-width:510px; margin:50px auto; text-align:right; } label { display:block; font-size:14px; color:var(--muted); margin:18px 0 7px; }
+    input { width:100%; border:1px solid var(--line); background:#0b1728; color:var(--text); border-radius:12px; padding:13px 14px; font-size:16px; outline:none; } input:focus { border-color:var(--blue); }
+    button { border:0; border-radius:12px; padding:12px 17px; font-size:15px; font-weight:700; cursor:pointer; color:#06121f; background:var(--green); } button.secondary { color:var(--text); background:#1a304e; } button:disabled { opacity:.55; cursor:not-allowed; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:17px; } .hidden { display:none !important; }
+    .status { display:flex; align-items:center; gap:10px; margin:18px 0; padding:12px 14px; border-radius:13px; background:#0b1728; border:1px solid var(--line); }
+    .dot { width:10px; height:10px; border-radius:50%; background:#f2b84b; box-shadow:0 0 0 5px rgba(242,184,75,.12); } .dot.connected { background:var(--green); box-shadow:0 0 0 5px rgba(53,211,153,.12); } .dot.error { background:var(--danger); }
+    .qr { width:min(290px,100%); aspect-ratio:1; background:white; border-radius:16px; padding:12px; margin:17px auto; display:block; } .placeholder { min-height:290px; display:grid; place-items:center; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:16px; padding:30px; margin-top:17px; }
+    .code { direction:ltr; text-align:center; letter-spacing:6px; font-weight:800; font-size:28px; color:var(--green); background:#07111e; border:1px dashed #397c72; border-radius:13px; padding:19px 8px; margin:17px 0; }
+    ol { margin:14px 0 0; padding-right:21px; color:var(--muted); line-height:2; } .notice { color:var(--muted); font-size:13px; line-height:1.8; margin-top:16px; } .error { color:var(--danger); margin-top:12px; min-height:22px; } .success { color:var(--green); }
+    footer { text-align:center; color:var(--muted); font-size:13px; margin-top:18px; } @media(max-width:760px) { .grid { grid-template-columns:1fr; } header { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header><div class="brand"><div class="logo">✦</div><div><h1>MARCO MALIK MD</h1><p class="muted">WhatsApp pairing dashboard</p></div></div><div id="connectionBadge" class="badge">رابطہ چیک ہو رہا ہے…</div></header>
+    <section id="loginCard" class="card login">
+      <h2>محفوظ dashboard login</h2><p class="muted">Pairing code اور QR صرف authorized owner کے لیے دستیاب ہیں۔</p>
+      <label for="password">Dashboard password</label><input id="password" type="password" autocomplete="current-password" placeholder="اپنا password لکھیں">
+      <div class="actions"><button id="loginBtn">Login</button></div><div id="loginError" class="error"></div>
+      <p class="notice">Password server کی <b>DASHBOARD_PASSWORD</b> environment variable میں set ہونا چاہیے۔ اسے WhatsApp number یا API key نہ بنائیں۔</p>
+    </section>
+    <section id="appShell" class="hidden">
+      <div class="status"><span id="dot" class="dot"></span><strong id="statusText">تیاری ہو رہی ہے…</strong></div>
+      <div class="grid">
+        <article class="card"><h2>QR سے connect کریں</h2><p class="muted">WhatsApp → Linked devices → Link a device کھول کر QR scan کریں۔</p><div id="qrBox" class="placeholder">QR code یہاں ظاہر ہوگا۔</div></article>
+        <article class="card"><h2>Phone number سے connect کریں</h2><p class="muted">Country code کے ساتھ number لکھیں، مگر <b>+</b>، spaces یا dashes نہ لگائیں۔</p><label for="phone">WhatsApp number</label><input id="phone" inputmode="numeric" placeholder="923001234567"><div class="actions"><button id="pairBtn">Pairing code بنائیں</button></div><div id="pairingBox" class="hidden"><div class="code" id="pairingCode"></div><p class="notice">WhatsApp → Linked devices → Link with phone number پر یہ code درج کریں۔</p></div><div id="pairError" class="error"></div></article>
+      </div>
+      <article class="card" style="margin-top:18px"><h2>مختصر setup</h2><ol><li>پہلے dashboard password سے login کریں۔</li><li>QR scan کریں یا phone number سے pairing code بنائیں۔</li><li>WhatsApp میں code confirm ہونے تک browser بند نہ کریں۔</li><li>Connected آنے کے بعد bot online ہے؛ session server پر محفوظ ہو جائے گی۔</li></ol><p class="notice">QR، pairing code اور session کسی کے ساتھ share نہ کریں۔ یہ dashboard صرف HTTPS deployment پر چلائیں۔</p></article>
+    </section>
+    <footer>MARCO MALIK MD · Baileys pairing dashboard</footer>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const $ = (id) => document.getElementById(id);
+    let authenticated = false;
+    function showState(s) {
+      const labels = { connected:'Connected', qr:'QR تیار ہے', pairing:'Pairing code تیار ہے', waiting:'Pairing کا انتظار ہے', connecting:'Connect ہو رہا ہے', reconnecting:'دوبارہ connect ہو رہا ہے', logged_out:'Logout ہو گیا ہے', starting:'شروع ہو رہا ہے' };
+      $('connectionBadge').textContent = labels[s.connection] || s.connection;
+      $('statusText').textContent = s.message || labels[s.connection] || 'Status unavailable';
+      $('dot').className = 'dot ' + (s.connection === 'connected' ? 'connected' : s.connection === 'logged_out' ? 'error' : '');
+      if (s.qr) $('qrBox').innerHTML = '<img class="qr" alt="WhatsApp QR code" src="' + s.qr + '">';
+      else if (s.connection === 'connected') $('qrBox').innerHTML = '<div class="placeholder">✅ WhatsApp کامیابی سے connected ہے۔</div>';
+      else if (!$('qrBox').querySelector('img')) $('qrBox').innerHTML = '<div class="placeholder">QR code کا انتظار ہے…</div>';
+      if (s.pairingCode) { $('pairingBox').classList.remove('hidden'); $('pairingCode').textContent = s.pairingCode; }
+      if (s.connection === 'connected') $('pairingBox').classList.add('hidden');
+    }
+    socket.on('bot-state', showState);
+    socket.on('auth-result', (r) => { if (r.ok) { authenticated = true; $('loginCard').classList.add('hidden'); $('appShell').classList.remove('hidden'); } else $('loginError').textContent = r.message; });
+    socket.on('pairing-error', (message) => $('pairError').textContent = message);
+    $('loginBtn').onclick = () => { $('loginError').textContent = ''; socket.emit('authenticate', $('password').value); };
+    $('password').onkeydown = (e) => { if (e.key === 'Enter') $('loginBtn').click(); };
+    $('pairBtn').onclick = () => { $('pairError').textContent = ''; $('pairBtn').disabled = true; socket.emit('request-pairing-code', $('phone').value); setTimeout(() => $('pairBtn').disabled = false, 3000); };
+  </script>
+</body>
+</html>
